@@ -3,14 +3,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Cocoa
-import MASShortcut
+import KeyboardShortcuts
 import Sparkle
 import Defaults
 import Preferences
 
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    // Must be retained for the lifetime of the app for Sparkle 2.x
+    // Retained for app lifetime — Sparkle 2.x requirement
     let updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
         updaterDelegate: nil,
@@ -18,20 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     func applicationDidFinishLaunching(_: Notification) {
-        MASShortcutBinder.shared()?.bindShortcut(withDefaultsKey: UserDefaultKeys.Shortcuts.ToggleMenuItems) { () in
+        KeyboardShortcuts.onKeyUp(for: .toggleDozerIcons) {
             DozerIcons.shared.toggle()
         }
 
-        // Initalize Dozer Icons
         _ = DozerIcons.shared
-        
-        // If enabled hide menu bar icons at launch
         DozerIcons.shared.hideAtLaunch()
-
         _ = DozerIcons.toggleDockIcon(showIcon: false)
     }
 
-    // Show all Dozer icons when opening Dozer from Finder etc.
     func applicationOpenUntitledFile(_ sender: NSApplication) -> Bool {
         DozerIcons.shared.showAll()
         return true

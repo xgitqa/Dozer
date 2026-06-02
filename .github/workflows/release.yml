@@ -1,17 +1,16 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches:
-      - master
-      - claude/wizardly-feynman-LbX1M
-  pull_request:
-    branches:
-      - master
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    name: Build (Apple Silicon)
+  release:
+    name: Build and Release
     runs-on: macos-14
 
     steps:
@@ -38,7 +37,7 @@ jobs:
           /opt/homebrew/bin/swiftgen
           xcodegen
 
-      - name: Build (universal arm64 + x86_64)
+      - name: Build archive (universal)
         run: |
           xcodebuild \
             -project Dozer.xcodeproj \
@@ -52,22 +51,41 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             archive | xcpretty
 
-      - name: Extract and package app
+      - name: Package app as zip
         run: |
           mkdir -p build/export
           cp -R build/Dozer.xcarchive/Products/Applications/Dozer.app build/export/Dozer.app
-          cd build/export && zip -r ../Dozer-dev-universal.zip Dozer.app
+          cd build/export && zip -r "../Dozer-${{ github.ref_name }}-universal.zip" Dozer.app
 
       - name: Verify universal binary
         run: |
           lipo -info build/export/Dozer.app/Contents/MacOS/Dozer
           lipo -info build/export/Dozer.app/Contents/MacOS/Dozer | grep -q "arm64" || (echo "ERROR: arm64 slice missing" && exit 1)
-          lipo -info build/export/Dozer.app/Contents/MacOS/Dozer | grep -q "x86_64" || (echo "ERROR: x86_64 slice missing" && exit 1)
           echo "Universal binary verified"
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Dozer-universal
-          path: build/Dozer-dev-universal.zip
-          retention-days: 7
+          files: build/Dozer-${{ github.ref_name }}-universal.zip
+          generate_release_notes: true
+          body: |
+            ## Dozer ${{ github.ref_name }} — Apple Silicon fork
+
+            Universal binary: **Apple Silicon (arm64)** + **Intel (x86_64)**. No Rosetta required.
+            Requires macOS 12 Monterey or later.
+
+            ### Install
+            1. Download `Dozer-${{ github.ref_name }}-universal.zip` and unzip it
+            2. Drag `Dozer.app` to your Applications folder
+
+            > **First-launch note:** This build is unsigned. Right-click the app and choose **Open**,
+            > or clear the quarantine flag first:
+            > ```
+            > xattr -cr /Applications/Dozer.app
+            > ```
+
+            ### What changed from upstream
+            - Native Apple Silicon support (universal binary, no Rosetta)
+            - Upgraded to Sparkle 2.x for auto-update
+            - Replaced MASShortcut with KeyboardShortcuts
+            - Requires macOS 12+ (up from 10.13)
