@@ -1,11 +1,20 @@
-LOCATION="${BUILT_PRODUCTS_DIR}"/"${FRAMEWORKS_FOLDER_PATH}"
+LOCATION="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
 
-# By default, use the configured code signing identity for the project/target
 IDENTITY="${CODE_SIGN_IDENTITY}"
-if [ "$IDENTITY" == "" ]
-then
-    # If a code signing identity is not specified, use ad hoc signing
+if [ "$IDENTITY" == "" ]; then
     IDENTITY="-"
 fi
-codesign --verbose --force --deep -o runtime --sign "$IDENTITY" "$LOCATION/Sparkle.framework/Versions/A/Resources/AutoUpdate.app"
-codesign --verbose --force -o runtime --sign "$IDENTITY" "$LOCATION/Sparkle.framework/Versions/A"
+
+SPARKLE="${LOCATION}/Sparkle.framework"
+
+if [ -d "${SPARKLE}/Versions/A/XPCServices" ]; then
+    for xpc in "${SPARKLE}/Versions/A/XPCServices"/*.xpc; do
+        codesign --verbose --force -o runtime --sign "$IDENTITY" "$xpc"
+    done
+fi
+
+if [ -d "${SPARKLE}/Versions/A/Updater.app" ]; then
+    codesign --verbose --force --deep -o runtime --sign "$IDENTITY" "${SPARKLE}/Versions/A/Updater.app"
+fi
+
+codesign --verbose --force -o runtime --sign "$IDENTITY" "${SPARKLE}/Versions/A"

@@ -1,0 +1,64 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+      - claude/wizardly-feynman-LbX1M
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build (Apple Silicon)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Homebrew dependencies
+        run: brew bundle
+
+      - name: Cache Carthage
+        uses: actions/cache@v4
+        with:
+          path: Carthage
+          key: ${{ runner.os }}-carthage-${{ hashFiles('Cartfile.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-carthage-
+
+      - name: Bootstrap Carthage (xcframeworks for Apple Silicon)
+        run: carthage bootstrap --cache-builds --platform osx --use-xcframeworks
+
+      - name: Generate Xcode project
+        run: |
+          mkdir -p Dozer/Other/Generated
+          /opt/homebrew/bin/swiftgen
+          xcodegen
+
+      - name: Build (universal arm64 + x86_64)
+        run: |
+          xcodebuild \
+            -project Dozer.xcodeproj \
+            -scheme Dozer \
+            -configuration Release \
+            ARCHS="arm64 x86_64" \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build | xcpretty
+
+      - name: Verify universal binary
+        run: |
+          APP=$(find ~/Library/Developer/Xcode/DerivedData -name "Dozer" -type f -path "*/MacOS/Dozer" 2>/dev/null | head -1)
+          if [ -z "$APP" ]; then
+            echo "Could not find built binary"
+            exit 1
+          fi
+          echo "Binary: $APP"
+          lipo -info "$APP"
+          lipo -info "$APP" | grep -q "arm64" && echo "arm64 slice present" || (echo "ERROR: arm64 slice missing" && exit 1)
+          lipo -info "$APP" | grep -q "x86_64" && echo "x86_64 slice present" || (echo "ERROR: x86_64 slice missing" && exit 1)
