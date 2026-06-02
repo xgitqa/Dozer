@@ -67,8 +67,30 @@ targets:
         product: Preferences
       - package: Sparkle
         product: Sparkle
+  DozerTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget:
+      macOS: 12.0
+    sources:
+      - DozerTests
+    settings:
+      base:
+        MACOSX_DEPLOYMENT_TARGET: 12.0
+        SWIFT_VERSION: 5
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Dozer.app/Contents/MacOS/Dozer"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    dependencies:
+      - target: Dozer
+      - package: KeyboardShortcuts
+      - package: Defaults
+
 schemes:
   Dozer:
     build:
       targets:
         Dozer: all
+        DozerTests: testing
+    test:
+      targets:
+        - DozerTests
