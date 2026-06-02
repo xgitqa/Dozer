@@ -11,7 +11,7 @@ packages:
     from: 2.2.0
   Defaults:
     url: https://github.com/sindresorhus/Defaults
-    from: 7.3.1
+    from: 4.2.2
   LaunchAtLogin:
     url: https://github.com/sindresorhus/LaunchAtLogin
     from: 4.1.0
