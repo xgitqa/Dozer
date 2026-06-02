@@ -33,9 +33,6 @@ targets:
     sources:
       - Dozer
     postBuildScripts:
-      - path: Scripts/LaunchAtLogin.sh
-        name: Launch At Login
-        runOnlyWhenInstalling: true
       - path: Scripts/SignFrameworks.sh
         name: Sign Frameworks
         runOnlyWhenInstalling: true
