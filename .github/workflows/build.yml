@@ -35,6 +35,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Dozer.xcodeproj \
+            -scheme Dozer \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee test.log
+          grep -q "TEST SUCCEEDED" test.log || (echo "Tests failed" && exit 1)
+
       - name: Build archive (universal arm64 + x86_64)
         run: |
           set -o pipefail
