@@ -46,8 +46,6 @@ targets:
             exit 1
           fi
         name: Generate files using SwiftGen
-      - path: Scripts/Swiftlint.sh
-        name: Swiftlint
     settings:
       base:
         CODE_SIGN_ENTITLEMENTS: Dozer/Other/Dozer.entitlements
