@@ -35,19 +35,37 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      - name: Run unit tests
+      # ── Unit + Functional tests (DozerTests runs inside app process) ──────
+      - name: Run unit & functional tests
         run: |
           set -o pipefail
           xcodebuild test \
             -project Dozer.xcodeproj \
             -scheme Dozer \
             -destination 'platform=macOS' \
+            -only-testing:DozerTests \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | tee test.log
-          grep -q "TEST SUCCEEDED" test.log || (echo "Tests failed" && exit 1)
+            2>&1 | tee unit_test.log
+          grep -q "TEST SUCCEEDED" unit_test.log || (echo "Unit/functional tests failed" && exit 1)
 
+      # ── End-to-end / UI tests (XCUIApplication launches the built app) ───
+      - name: Run UI / end-to-end tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Dozer.xcodeproj \
+            -scheme Dozer \
+            -destination 'platform=macOS' \
+            -only-testing:DozerUITests \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee ui_test.log
+          grep -q "TEST SUCCEEDED" ui_test.log || (echo "UI/E2E tests failed" && exit 1)
+
+      # ── Archive (universal arm64 + x86_64) ───────────────────────────────
       - name: Build archive (universal arm64 + x86_64)
         run: |
           set -o pipefail
@@ -73,7 +91,7 @@ jobs:
       - name: Verify universal binary
         run: |
           lipo -info build/export/Dozer.app/Contents/MacOS/Dozer
-          lipo -info build/export/Dozer.app/Contents/MacOS/Dozer | grep -q "arm64" || (echo "ERROR: arm64 slice missing" && exit 1)
+          lipo -info build/export/Dozer.app/Contents/MacOS/Dozer | grep -q "arm64"  || (echo "ERROR: arm64 slice missing"  && exit 1)
           lipo -info build/export/Dozer.app/Contents/MacOS/Dozer | grep -q "x86_64" || (echo "ERROR: x86_64 slice missing" && exit 1)
           echo "Universal binary verified"
 

@@ -85,12 +85,29 @@ targets:
       - package: KeyboardShortcuts
       - package: Defaults
 
+  DozerUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget:
+      macOS: 12.0
+    sources:
+      - DozerUITests
+    settings:
+      base:
+        MACOSX_DEPLOYMENT_TARGET: 12.0
+        SWIFT_VERSION: 5
+        TEST_TARGET_NAME: Dozer
+    dependencies:
+      - target: Dozer
+
 schemes:
   Dozer:
     build:
       targets:
         Dozer: all
         DozerTests: testing
+        DozerUITests: testing
     test:
       targets:
         - DozerTests
+        - DozerUITests
