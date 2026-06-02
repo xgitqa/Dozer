@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v4.1.0)'
+        required: true
+        default: 'v4.1.0'
 
 permissions:
   contents: write
@@ -34,6 +40,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-spm-
 
+      - name: Set release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build archive (universal)
         run: |
           set -o pipefail
@@ -54,7 +69,7 @@ jobs:
         run: |
           mkdir -p build/export
           cp -R build/Dozer.xcarchive/Products/Applications/Dozer.app build/export/Dozer.app
-          cd build/export && zip -r "../Dozer-${{ github.ref_name }}-universal.zip" Dozer.app
+          cd build/export && zip -r "../Dozer-${{ steps.tag.outputs.name }}-universal.zip" Dozer.app
 
       - name: Verify universal binary
         run: |
@@ -65,16 +80,17 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/Dozer-${{ github.ref_name }}-universal.zip
+          tag_name: ${{ steps.tag.outputs.name }}
+          files: build/Dozer-${{ steps.tag.outputs.name }}-universal.zip
           generate_release_notes: true
           body: |
-            ## Dozer ${{ github.ref_name }} — Apple Silicon fork
+            ## Dozer ${{ steps.tag.outputs.name }} — Apple Silicon fork
 
             Universal binary: **Apple Silicon (arm64)** + **Intel (x86_64)**. No Rosetta required.
             Requires macOS 12 Monterey or later.
 
             ### Install
-            1. Download `Dozer-${{ github.ref_name }}-universal.zip` and unzip it
+            1. Download `Dozer-${{ steps.tag.outputs.name }}-universal.zip` and unzip it
             2. Drag `Dozer.app` to your Applications folder
 
             > **First-launch note:** This build is unsigned. Right-click the app and choose **Open**,
