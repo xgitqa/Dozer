@@ -5,6 +5,22 @@ options:
   createIntermediateGroups: true
   xcodeVersion: 15.4
   deploymentTarget: 12.0
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: 2.2.0
+  Defaults:
+    url: https://github.com/sindresorhus/Defaults
+    from: 7.3.1
+  LaunchAtLogin:
+    url: https://github.com/sindresorhus/LaunchAtLogin
+    from: 4.1.0
+  Preferences:
+    url: https://github.com/sindresorhus/Preferences
+    from: 2.2.1
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.4
 targets:
   Dozer:
     type: application
@@ -48,11 +64,14 @@ targets:
         ARCHS: "arm64 x86_64"
         VALID_ARCHS: "arm64 x86_64"
     dependencies:
-      - carthage: LaunchAtLogin
-      - carthage: Defaults
-      - carthage: Preferences
-      - carthage: KeyboardShortcuts
-      - carthage: Sparkle
+      - package: KeyboardShortcuts
+      - package: Defaults
+      - package: LaunchAtLogin
+        product: LaunchAtLogin
+      - package: Preferences
+        product: Preferences
+      - package: Sparkle
+        product: Sparkle
 schemes:
   Dozer:
     build:

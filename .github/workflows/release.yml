@@ -20,22 +20,19 @@ jobs:
       - name: Install Homebrew dependencies
         run: brew bundle
 
-      - name: Cache Carthage
-        uses: actions/cache@v4
-        with:
-          path: Carthage
-          key: ${{ runner.os }}-carthage-${{ hashFiles('Cartfile.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-carthage-
-
-      - name: Bootstrap Carthage (xcframeworks)
-        run: carthage bootstrap --cache-builds --platform osx --use-xcframeworks
-
       - name: Generate Xcode project
         run: |
           mkdir -p Dozer/Other/Generated
           /opt/homebrew/bin/swiftgen
           xcodegen
+
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/Dozer-*/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('project.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
 
       - name: Build archive (universal)
         run: |
@@ -84,8 +81,9 @@ jobs:
             > xattr -cr /Applications/Dozer.app
             > ```
 
-            ### What changed from upstream
+            ### Changes from upstream
             - Native Apple Silicon support (universal binary, no Rosetta)
-            - Upgraded to Sparkle 2.x for auto-update
+            - Upgraded to Sparkle 2.x
             - Replaced MASShortcut with KeyboardShortcuts
+            - Migrated from Carthage to Swift Package Manager
             - Requires macOS 12+ (up from 10.13)
