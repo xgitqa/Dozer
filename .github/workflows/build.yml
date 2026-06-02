@@ -37,6 +37,7 @@ jobs:
 
       - name: Build archive (universal arm64 + x86_64)
         run: |
+          set -o pipefail
           xcodebuild \
             -project Dozer.xcodeproj \
             -scheme Dozer \
@@ -47,7 +48,8 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            archive | xcpretty
+            archive 2>&1 | tee build.log
+          grep -q "ARCHIVE SUCCEEDED" build.log || (echo "Archive failed" && exit 1)
 
       - name: Extract and package app
         run: |
