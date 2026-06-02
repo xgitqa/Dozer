@@ -25,8 +25,8 @@ final class Dozer: NSViewController, PreferencePane {
             versionLabel.stringValue = "\(releaseVersionNumber) (\(buildVersionNumber))"
         }
 
-        checkForUpdates.target = SUUpdater.shared()!
-        checkForUpdates.action = #selector(SUUpdater.shared()!.checkForUpdates(_:))
+        checkForUpdates.target = (NSApp.delegate as? AppDelegate)?.updaterController
+        checkForUpdates.action = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
 
         quit.action = #selector(NSApp.terminate(_:))
     }

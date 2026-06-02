@@ -30,17 +30,17 @@ final class General: NSViewController, PreferencePane {
     @IBOutlet private var ButtonPaddingPopUpButton: NSPopUpButton!
     @IBOutlet private var ToggleMenuItemsView: MASShortcutView!
 
+    private var sparkleUpdater: SPUUpdater? {
+        return (NSApp.delegate as? AppDelegate)?.updaterController.updater
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         LaunchAtLoginCheckbox.focusRingType = .none
 
         LaunchAtLoginCheckbox.isChecked = LaunchAtLogin.isEnabled
-        if SUUpdater.shared() != nil {
-            CheckForUpdatesCheckbox.isChecked = SUUpdater.shared()!.automaticallyChecksForUpdates
-        } else {
-            CheckForUpdatesCheckbox.isChecked = false
-        }
+        CheckForUpdatesCheckbox.isChecked = sparkleUpdater?.automaticallyChecksForUpdates ?? false
 
         HideStatusBarIconsAtLaunchCheckbox.isChecked = Defaults[.hideAtLaunchEnabled]
         HideStatusBarIconsAfterDelayCheckbox.isChecked = Defaults[.hideAfterDelayEnabled]
@@ -66,11 +66,11 @@ final class General: NSViewController, PreferencePane {
     }
 
     @IBAction private func automaticallyCheckForUpdatesClicked(_ sender: NSButton) {
-        guard SUUpdater.shared() != nil else {
+        guard let updater = sparkleUpdater else {
             CheckForUpdatesCheckbox.isChecked = false
             return
         }
-        SUUpdater.shared()!.automaticallyChecksForUpdates = CheckForUpdatesCheckbox.isChecked
+        updater.automaticallyChecksForUpdates = CheckForUpdatesCheckbox.isChecked
     }
 
     @IBAction private func hideStatusBarIconsAtLaunchClicked(_ sender: NSButton) {
@@ -106,7 +106,6 @@ final class General: NSViewController, PreferencePane {
         DozerIcons.shared.enableRemoveDozerIcon = EnableRemoveDozerIconCheckbox.isChecked
     }
 
-    /// disables the noIcon-checkbox if no shortcut is set and keeps track whether shortcut is set
     private func configureEnabledNoIconCheckbox() {
         if ToggleMenuItemsView.shortcutValue == nil {
             HideBothDozerIconsCheckbox.isEnabled = false

@@ -1,6 +1,6 @@
 build:
 	@brew bundle --no-upgrade
-	@carthage bootstrap --cache-builds --platform osx
+	@carthage bootstrap --cache-builds --platform osx --use-xcframeworks
 	@mkdir -p Dozer/Other/Generated
 	@swiftgen
 	@xcodegen 
