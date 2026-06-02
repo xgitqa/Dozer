@@ -84,6 +84,8 @@ targets:
       - target: Dozer
       - package: KeyboardShortcuts
       - package: Defaults
+      - package: Preferences
+        product: Preferences
 
   DozerUITests:
     type: bundle.ui-testing
