@@ -3,14 +3,14 @@ options:
   usesTabs: false
   tabWidth: 4
   createIntermediateGroups: true
-  xcodeVersion: 15.0
-  deploymentTarget: 10.13
+  xcodeVersion: 15.4
+  deploymentTarget: 12.0
 targets:
   Dozer:
     type: application
     platform: macOS
-    deploymentTarget: 
-      macOS: 10.13
+    deploymentTarget:
+      macOS: 12.0
     configFiles:
       Debug: Configs/Debug.xcconfig
       Release: Configs/Release.xcconfig
@@ -42,16 +42,16 @@ targets:
         SWIFT_VERSION: 5
         DEBUG_INFORMATION_FORMAT: "dwarf-with-dsym"
         ENABLE_HARDENED_RUNTIME: true
-        MACOSX_DEPLOYMENT_TARGET: 10.13
+        MACOSX_DEPLOYMENT_TARGET: 12.0
         VERSIONING_SYSTEM: apple-generic
-        CURRENT_PROJECT_VERSION: 30
+        CURRENT_PROJECT_VERSION: 31
         ARCHS: "arm64 x86_64"
         VALID_ARCHS: "arm64 x86_64"
     dependencies:
       - carthage: LaunchAtLogin
       - carthage: Defaults
       - carthage: Preferences
-      - carthage: MASShortcut
+      - carthage: KeyboardShortcuts
       - carthage: Sparkle
 schemes:
   Dozer:
