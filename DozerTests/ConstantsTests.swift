@@ -1,4 +1,5 @@
 import XCTest
+import Preferences
 @testable import Dozer
 
 final class ConstantsTests: XCTestCase {
