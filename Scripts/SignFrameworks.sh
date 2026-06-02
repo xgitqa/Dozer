@@ -7,14 +7,26 @@ fi
 
 SPARKLE="${LOCATION}/Sparkle.framework"
 
+if [ ! -d "${SPARKLE}" ]; then
+    exit 0
+fi
+
+# Sparkle 2.x (SPM) uses a flat framework layout — no Versions/A symlink
 if [ -d "${SPARKLE}/Versions/A/XPCServices" ]; then
-    for xpc in "${SPARKLE}/Versions/A/XPCServices"/*.xpc; do
-        codesign --verbose --force -o runtime --sign "$IDENTITY" "$xpc"
+    SPARKLE_CONTENTS="${SPARKLE}/Versions/A"
+elif [ -d "${SPARKLE}/XPCServices" ]; then
+    SPARKLE_CONTENTS="${SPARKLE}"
+else
+    SPARKLE_CONTENTS=""
+fi
+
+if [ -n "${SPARKLE_CONTENTS}" ]; then
+    for xpc in "${SPARKLE_CONTENTS}/XPCServices"/*.xpc; do
+        [ -d "$xpc" ] && codesign --verbose --force -o runtime --sign "$IDENTITY" "$xpc"
     done
+    if [ -d "${SPARKLE_CONTENTS}/Updater.app" ]; then
+        codesign --verbose --force --deep -o runtime --sign "$IDENTITY" "${SPARKLE_CONTENTS}/Updater.app"
+    fi
 fi
 
-if [ -d "${SPARKLE}/Versions/A/Updater.app" ]; then
-    codesign --verbose --force --deep -o runtime --sign "$IDENTITY" "${SPARKLE}/Versions/A/Updater.app"
-fi
-
-codesign --verbose --force -o runtime --sign "$IDENTITY" "${SPARKLE}/Versions/A"
+codesign --verbose --force -o runtime --sign "$IDENTITY" "${SPARKLE}"
