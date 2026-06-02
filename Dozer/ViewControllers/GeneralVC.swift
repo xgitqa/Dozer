@@ -46,13 +46,9 @@ final class General: NSViewController, PreferencePane {
         FontSizePopUpButton.selectItem(withTitle: "\(Int(Defaults[.iconSize])) px")
         ButtonPaddingPopUpButton.selectItem(withTitle: "\(Int(Defaults[.buttonPadding])) px")
 
-        // Keyboard shortcut recorder — placed where MASShortcutView was (x:20 y:15)
         let recorder = KeyboardShortcuts.RecorderCocoa(for: .toggleDozerIcons)
         recorder.frame = NSRect(x: 20, y: 10, width: 130, height: 24)
         view.addSubview(recorder)
-        recorder.onChange = { [weak self] _ in
-            self?.configureEnabledNoIconCheckbox()
-        }
 
         configureEnabledNoIconCheckbox()
     }
