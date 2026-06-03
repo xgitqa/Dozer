@@ -1,7 +1,8 @@
 import XCTest
 
 /// End-to-end tests — launch the real app binary and verify it stays alive.
-/// These run against the built Dozer.app via XCUIApplication.
+/// Dozer is a menu-bar agent (LSUIElement); it runs as runningBackground,
+/// not runningForeground, so we check for either active state.
 final class AppLaunchTests: XCTestCase {
 
     override func setUp() {
@@ -13,19 +14,33 @@ final class AppLaunchTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // Allow up to 5 seconds for the app to finish launching.
-        // A menu bar app has no windows; we just verify the process is alive.
-        let launched = app.wait(for: .runningForeground, timeout: 5)
-        XCTAssertTrue(launched, "App should reach runningForeground state within 5s")
+        // Agent/LSUIElement apps reach runningBackground, not runningForeground.
+        // Poll for up to 10s for any running state.
+        let deadline = Date().addingTimeInterval(10)
+        var running = false
+        while Date() < deadline {
+            let s = app.state
+            if s == .runningForeground || s == .runningBackground {
+                running = true
+                break
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+        XCTAssertTrue(running, "App should be running (foreground or background) within 10s; got \(app.state.rawValue)")
     }
 
     func testAppRemainsStableAfterLaunch() {
         let app = XCUIApplication()
         app.launch()
 
-        _ = app.wait(for: .runningForeground, timeout: 5)
+        // Wait for the app to start
+        let deadline = Date().addingTimeInterval(10)
+        while Date() < deadline {
+            if app.state == .runningForeground || app.state == .runningBackground { break }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
 
-        // Wait 2 seconds and confirm the process hasn't terminated.
+        // Pause, then confirm it hasn't crashed
         Thread.sleep(forTimeInterval: 2)
         XCTAssertNotEqual(app.state, .notRunning, "App should not crash within 2s of launch")
     }
